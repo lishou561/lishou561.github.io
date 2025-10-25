@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>半图不假</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            display: flex;
+            margin-bottom: 20px;
+            margin-top: 100px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            margin-right: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+      
+       .btn2 {
+            padding: 10px 15px;
+            margin-right: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 60%;
+            max-width: 500px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .color-box {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border: 1px solid #ccc;
+        }
+        
+        .red { background-color: #ff4d4d; }
+        .golden { background-color: #ffcc00; }
+        .purple { background-color: #b266ff; }
+        .blue { background-color: #4da6ff; }
+        .green { background-color: #66cc66; }
+        
+        .number-item {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            margin: 5px;
+            border-radius: 50%;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .history-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button id="probability-btn" class="btn">介绍</button>
+        <button id="history-btn" class="btn">历史记录</button>
+        <button id="generate-btn" class="btn2">点击看爆率</button>
+    </div>
+    
+    <!-- 概率分布弹窗 -->
+    <div id="probability-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" data-modal="probability-modal">&times;</span>
+            <h2>概率分布</h2>
+           <p>每次随机生成1-10个数字</p>
+            <p><span class="color-box green"></span> 生成绿色的概率: 40%</p>
+            <p><span class="color-box blue"></span> 生成蓝色的概率: 30%</p>
+            <p><span class="color-box purple"></span> 生成紫色的概率: 20%</p>
+            <p><span class="color-box golden"></span> 生成金色的概率: 10%</p>
+            <p><span class="color-box red"></span> 生成红色的概率: 1%</p>
+          
+        </div>
+    </div>
+    
+    <!-- 历史记录弹窗 -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" data-modal="history-modal">&times;</span>
+            <h2>历史记录</h2>
+            <div id="history-list"></div>
+        </div>
+    </div>
+    
+    <!-- 结果弹窗 -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" data-modal="result-modal">&times;</span>
+            <h2>生成结果</h2>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // 历史记录数组
+        let history = [];
+        
+        // 获取DOM元素
+        const probabilityBtn = document.getElementById('probability-btn');
+        const historyBtn = document.getElementById('history-btn');
+        const generateBtn = document.getElementById('generate-btn');
+        const probabilityModal = document.getElementById('probability-modal');
+        const historyModal = document.getElementById('history-modal');
+        const resultModal = document.getElementById('result-modal');
+        const historyList = document.getElementById('history-list');
+        const resultContainer = document.getElementById('result');
+        const closeButtons = document.querySelectorAll('.close');
+        
+        // 显示概率分布弹窗
+        probabilityBtn.addEventListener('click', function() {
+            probabilityModal.style.display = 'block';
+        });
+        
+        // 显示历史记录弹窗
+        historyBtn.addEventListener('click', function() {
+            updateHistoryList();
+            historyModal.style.display = 'block';
+        });
+        
+        // 生成随机数字
+        generateBtn.addEventListener('click', function() {
+            generateRandomNumbers();
+        });
+        
+        // 关闭弹窗
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modalId = this.getAttribute('data-modal');
+                document.getElementById(modalId).style.display = 'none';
+            });
+        });
+        
+        // 点击弹窗外部关闭弹窗
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        });
+        
+        // 更新历史记录列表
+        function updateHistoryList() {
+            historyList.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p>暂无历史记录</p>';
+                return;
+            }
+            
+            history.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const title = document.createElement('p');
+                title.textContent = `第 ${index + 1} 次生成 (${item.count} 个数字)`;
+                
+                const numbers = document.createElement('div');
+                item.numbers.forEach(numberData => {
+                    const numberElement = document.createElement('span');
+                    numberElement.className = `number-item ${numberData.color}`;
+                    numberElement.textContent = numberData.number;
+                    numbers.appendChild(numberElement);
+                });
+                
+                historyItem.appendChild(title);
+                historyItem.appendChild(numbers);
+                historyList.appendChild(historyItem);
+            });
+        }
+        
+        // 生成随机数字
+        function generateRandomNumbers() {
+            // 清空之前的结果
+            resultContainer.innerHTML = '';
+            
+            // 确定生成数字的数量 (3-6的概率为80%)
+            const count = getRandomCount();
+            
+            // 生成数字
+            const numbers = [];
+            for (let i = 0; i < count; i++) {
+                numbers.push(getRandomNumberWithColor());
+            }
+            
+            // 显示结果
+            numbers.forEach(numberData => {
+                const numberElement = document.createElement('span');
+                numberElement.className = `number-item ${numberData.color}`;
+                numberElement.textContent = numberData.number;
+                resultContainer.appendChild(numberElement);
+            });
+            
+            // 添加到历史记录
+            history.unshift({
+                count: count,
+                numbers: numbers
+            });
+            
+            // 显示结果弹窗
+            resultModal.style.display = 'block';
+        }
+        
+        function getRandomCount() {
+            // 80%概率生成3-6个数字，20%概率生成其他数量
+            const isCommon = Math.random() < 0.8;
+            
+            if (isCommon) {
+                // 3到6之间的随机数
+                return Math.floor(Math.random() * 4) + 3;
+            } else {
+                // 1,2,7,8,9,10
+                const uncommonCounts = [1, 2, 7, 8, 9, 10];
+                return uncommonCounts[Math.floor(Math.random() * uncommonCounts.length)];
+            }
+        }
+        
+        function getRandomNumberWithColor() {
+            // 生成1-10的随机数字
+            const number = Math.floor(Math.random() * 10) + 1;
+            
+            // 根据概率确定颜色
+            const color = getRandomColor();
+            
+            return { number, color };
+        }
+        
+        function getRandomColor() {
+            const randomValue = Math.random() * 100;
+            
+            if (randomValue < 40) {
+                return 'green';
+            } else if (randomValue < 70) {
+                return 'blue';
+            } else if (randomValue < 90) {
+                return 'purple';
+            } else if (randomValue < 99) {
+                return 'golden';
+            } else {
+                return 'red';
+            }
+        }
+    </script>
+</body>
+</html>
