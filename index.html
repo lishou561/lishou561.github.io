@@ -185,6 +185,18 @@
         .modal-body::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
+        
+        .hidden-score-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -194,7 +206,7 @@
             <button id="history-btn" class="btn">历史记录</button>
         </div>
         <div class="total-container">
-            <div class="total-label">钱总计：</div>
+            <div class="total-label">总计：</div>
             <div class="total-value" id="total-value">0</div>
         </div>
     </div>
@@ -203,15 +215,20 @@
         <div class="generate-buttons">
             <button id="generate-btn" class="btn generate-btn">普通模式</button>
             <button id="generate-btn-2" class="btn generate-btn generate-btn-2">机密模式(需消耗50)</button>
-            <button id="generate-btn-3" class="btn generate-btn generate-btn-3">绝密模式(消耗100)</button>
+            <button id="generate-btn-3" class="btn generate-btn generate-btn-3">绝密模式(需消耗100)</button>
         </div>
+    </div>
+    
+    <!-- 隐藏分信息显示 -->
+    <div class="hidden-score-info" id="hidden-score-info">
+        隐藏分: <span id="hidden-score-value">0</span> 
     </div>
     
     <!-- 概率分布弹窗 -->
     <div id="probability-modal" class="modal">
         <div class="modal-content">
             <span class="close" data-modal="probability-modal">&times;</span>
-            <h2>概率分布</h2>
+            <h2>概率介绍</h2>
             <div class="modal-body">
                 <h3>普通模式</h3>
                 <p><span class="color-box green"></span> 绿色: 50%</p>
@@ -221,7 +238,11 @@
                 <p><span class="color-box red"></span> 红色: 0.309%</p>
                 <p><span class="color-box deep-red"></span> 深红色(非洲之心): 0.0618%</p>
                 
-          
+                <h3>隐藏分机制</h3>
+                <p>隐藏分越高出红概率越高，隐藏分越低出红概率越低</p>
+                <p>每玩1分钟加一分隐藏分</p>
+                <p>每次点击一次加5分</p>
+                <p>每次出红色后减50分，总计分数每加500分就减50分</p>
             </div>
         </div>
     </div>
@@ -241,10 +262,11 @@
     <div id="result-modal" class="modal">
         <div class="modal-content">
             <span class="close" data-modal="result-modal">&times;</span>
-            <h2>收益结果</h2>
+            <h2>结果</h2>
             <div class="modal-body">
                 <div id="result"></div>
                 <div id="mode-info" class="mode-info"></div>
+                <div id="hidden-score-effect" class="mode-info"></div>
             </div>
         </div>
     </div>
@@ -254,6 +276,13 @@
         let history = [];
         // 总计变量
         let totalSum = 0;
+        // 隐藏分变量
+        let hiddenScore = 0;
+        // 上次触发总计减分时的积分
+        let lastDeductionPoint = 0;
+        // 计时器变量
+        let minuteTimer = null;
+        let minutesOnPage = 0;
         
         // 获取DOM元素
         const probabilityBtn = document.getElementById('probability-btn');
@@ -268,7 +297,16 @@
         const resultContainer = document.getElementById('result');
         const totalValue = document.getElementById('total-value');
         const modeInfo = document.getElementById('mode-info');
+        const hiddenScoreInfo = document.getElementById('hidden-score-info');
+        const hiddenScoreValue = document.getElementById('hidden-score-value');
+        const hiddenScoreEffect = document.getElementById('hidden-score-effect');
         const closeButtons = document.querySelectorAll('.close');
+        
+        // 初始化隐藏分显示
+        hiddenScoreValue.textContent = hiddenScore;
+        
+        // 开始计时器
+        startMinuteTimer();
         
         // 显示概率分布弹窗
         probabilityBtn.addEventListener('click', function() {
@@ -289,7 +327,7 @@
         // 生成随机数字 - 消耗50积分模式
         generateBtn2.addEventListener('click', function() {
             if (totalSum < 50) {
-                alert("你钱不够了！不能猛攻！需要50入场费。");
+                alert("钱不够了！要50积分才能开启。");
                 return;
             }
             generateRandomNumbers(50);
@@ -298,7 +336,7 @@
         // 生成随机数字 - 消耗100积分模式
         generateBtn3.addEventListener('click', function() {
             if (totalSum < 100) {
-                alert("你钱不够了！需要100入场费。");
+                alert("没钱了！用不了。");
                 return;
             }
             generateRandomNumbers(100);
@@ -333,8 +371,8 @@
                 historyItem.className = 'history-item';
                 
                 let modeText = '';
-                if (item.mode === 50) modeText = ' (消耗50积分模式)';
-                else if (item.mode === 100) modeText = ' (消耗100积分模式)';
+                if (item.mode === 50) modeText = ' (机密模式)';
+                else if (item.mode === 100) modeText = ' (绝密模式)';
                 
                 const title = document.createElement('p');
                 title.textContent = `第 ${index + 1} 次生成${modeText} (${item.count} 个数字，总和: ${item.sum})`;
@@ -353,11 +391,28 @@
             });
         }
         
+        // 开始每分钟计时器
+        function startMinuteTimer() {
+            minuteTimer = setInterval(function() {
+                minutesOnPage++;
+                hiddenScore += 1; // 每分钟加1分
+                updateHiddenScoreDisplay();
+            }, 60000); // 每分钟60000毫秒
+        }
+        
+        // 更新隐藏分显示
+        function updateHiddenScoreDisplay() {
+            hiddenScoreValue.textContent = hiddenScore;
+            // 显示隐藏分信息
+            hiddenScoreInfo.style.display = 'block';
+        }
+        
         // 生成随机数字
         function generateRandomNumbers(modeCost) {
             // 清空之前的结果
             resultContainer.innerHTML = '';
             modeInfo.textContent = '';
+            hiddenScoreEffect.textContent = '';
             
             // 确定生成数字的数量 (2-4的概率为95%)
             const count = getRandomCount();
@@ -365,12 +420,21 @@
             // 生成数字
             const numbers = [];
             let currentSum = 0;
+            let hasRed = false;
             
             for (let i = 0; i < count; i++) {
                 const numberData = getRandomNumberWithColor(modeCost);
                 numbers.push(numberData);
                 currentSum += numberData.number;
+                
+                // 检查是否有红色（不包括深红色）
+                if (numberData.color === 'red') {
+                    hasRed = true;
+                }
             }
+            
+            // 更新隐藏分
+            updateHiddenScore(modeCost, hasRed, currentSum);
             
             // 更新总计
             totalSum += currentSum;
@@ -392,6 +456,13 @@
                 modeInfo.textContent = "绝密模式";
             }
             
+            // 设置隐藏分影响信息
+            if (hiddenScore > 0) {
+                hiddenScoreEffect.textContent = `隐藏分影响：红色概率提升了${hiddenScore}%`;
+            } else if (hiddenScore < 0) {
+                hiddenScoreEffect.textContent = `隐藏分影响：红色概率降低了${Math.abs(hiddenScore)}%`;
+            }
+            
             // 添加到历史记录
             history.unshift({
                 count: count,
@@ -402,6 +473,29 @@
             
             // 显示结果弹窗
             resultModal.style.display = 'block';
+        }
+        
+        // 更新隐藏分
+        function updateHiddenScore(modeCost, hasRed, currentSum) {
+            // 每次生成加5分
+            hiddenScore += 5;
+            
+            // 如果出红色，减50分
+            if (hasRed) {
+                hiddenScore -= 50;
+            }
+            
+            // 如果总计分数每多500就减50分
+            const currentTotal = totalSum + currentSum - modeCost;
+            const deductionCount = Math.floor(currentTotal / 500) - Math.floor(lastDeductionPoint / 500);
+            
+            if (deductionCount > 0) {
+                hiddenScore -= deductionCount * 50;
+                lastDeductionPoint = currentTotal;
+            }
+            
+            // 更新显示
+            updateHiddenScoreDisplay();
         }
         
         function getRandomCount() {
@@ -480,20 +574,8 @@
             
             // 根据模式调整概率分布
             if (modeCost === 0) {
-                // 普通模式 - 原始概率
-                if (randomValue < 50) {
-                    return 'green';
-                } else if (randomValue < 50 + 44.0112) {
-                    return 'blue';
-                } else if (randomValue < 50 + 44.0112 + 5) {
-                    return 'purple';
-                } else if (randomValue < 50 + 44.0112 + 5 + 0.618) {
-                    return 'golden';
-                } else if (randomValue < 50 + 44.0112 + 5 + 0.618 + 0.309) {
-                    return 'red';
-                } else {
-                    return 'deep-red';
-                }
+                // 普通模式 - 原始概率，但受隐藏分影响
+                return getAdjustedColor(randomValue, 50, 44.0112, 5, 0.618, 0.309, 0.0618);
             } else if (modeCost === 50) {
                 // 消耗50积分模式 - 深红提升50%，紫色4倍，金色2倍
                 // 计算调整后的概率
@@ -513,20 +595,7 @@
                 const greenProb = commonTotal * greenRatio;
                 const blueProb = commonTotal * blueRatio;
                 
-                // 根据调整后的概率返回颜色
-                if (randomValue < greenProb) {
-                    return 'green';
-                } else if (randomValue < greenProb + blueProb) {
-                    return 'blue';
-                } else if (randomValue < greenProb + blueProb + purpleProb) {
-                    return 'purple';
-                } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb) {
-                    return 'golden';
-                } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb + redProb) {
-                    return 'red';
-                } else {
-                    return 'deep-red';
-                }
+                return getAdjustedColor(randomValue, greenProb, blueProb, purpleProb, goldenProb, redProb, deepRedProb);
             } else if (modeCost === 100) {
                 // 消耗100积分模式 - 深红保持不变，紫色8倍，金色10倍
                 // 计算调整后的概率
@@ -546,20 +615,47 @@
                 const greenProb = commonTotal * greenRatio;
                 const blueProb = commonTotal * blueRatio;
                 
-                // 根据调整后的概率返回颜色
-                if (randomValue < greenProb) {
-                    return 'green';
-                } else if (randomValue < greenProb + blueProb) {
-                    return 'blue';
-                } else if (randomValue < greenProb + blueProb + purpleProb) {
-                    return 'purple';
-                } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb) {
-                    return 'golden';
-                } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb + redProb) {
-                    return 'red';
-                } else {
-                    return 'deep-red';
-                }
+                return getAdjustedColor(randomValue, greenProb, blueProb, purpleProb, goldenProb, redProb, deepRedProb);
+            }
+        }
+        
+        // 根据隐藏分调整红色概率
+        function getAdjustedColor(randomValue, greenProb, blueProb, purpleProb, goldenProb, redProb, deepRedProb) {
+            // 应用隐藏分影响 - 调整红色概率
+            let adjustedRedProb = redProb * (1 + hiddenScore / 100);
+            
+            // 确保红色概率不为负
+            if (adjustedRedProb < 0) adjustedRedProb = 0;
+            
+            // 重新计算总概率
+            const totalProb = greenProb + blueProb + purpleProb + goldenProb + adjustedRedProb + deepRedProb;
+            
+            // 如果总概率超过100%，需要按比例缩减其他概率
+            if (totalProb > 100) {
+                const excess = totalProb - 100;
+                const otherColorsTotal = greenProb + blueProb + purpleProb + goldenProb + deepRedProb;
+                const scale = (otherColorsTotal - excess) / otherColorsTotal;
+                
+                greenProb *= scale;
+                blueProb *= scale;
+                purpleProb *= scale;
+                goldenProb *= scale;
+                deepRedProb *= scale;
+            }
+            
+            // 根据调整后的概率返回颜色
+            if (randomValue < greenProb) {
+                return 'green';
+            } else if (randomValue < greenProb + blueProb) {
+                return 'blue';
+            } else if (randomValue < greenProb + blueProb + purpleProb) {
+                return 'purple';
+            } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb) {
+                return 'golden';
+            } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb + adjustedRedProb) {
+                return 'red';
+            } else {
+                return 'deep-red';
             }
         }
     </script>
