@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>随机数字生成器</title>
+    <title>模拟爆率</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -83,6 +83,7 @@
         }
         
         .red { background-color: #ff4d4d; }
+        .deep-red { background-color: #8B0000; }
         .golden { background-color: #ffcc00; }
         .purple { background-color: #b266ff; }
         .blue { background-color: #4da6ff; }
@@ -122,12 +123,13 @@
         <div class="modal-content">
             <span class="close" data-modal="probability-modal">&times;</span>
             <h2>概率分布</h2>
-            <p><span class="color-box green"></span> 绿色: 40%</p>
-            <p><span class="color-box blue"></span> 蓝色: 30%</p>
-            <p><span class="color-box purple"></span> 紫色: 20%</p>
-            <p><span class="color-box golden"></span> 金色: 10%</p>
-            <p><span class="color-box red"></span> 红色: 1%</p>
-            <p>生成3-6个数字的概率: 80%</p>
+            <p><span class="color-box green"></span> 绿色: 50%</p>
+            <p><span class="color-box blue"></span> 蓝色: 44%</p>
+            <p><span class="color-box purple"></span> 紫色: 5%</p>
+            <p><span class="color-box golden"></span> 金色: 0.618%</p>
+            <p><span class="color-box red"></span> 红色: 0.309%</p>
+            <p><span class="color-box deep-red"></span> 深红色: 0.0618%</p>
+            <p>生成1-6个数字的概率</p>
         </div>
     </div>
     
@@ -230,7 +232,7 @@
             // 清空之前的结果
             resultContainer.innerHTML = '';
             
-            // 确定生成数字的数量 (3-6的概率为80%)
+            // 确定生成数字的数量 (2-4的概率为95%)
             const count = getRandomCount();
             
             // 生成数字
@@ -258,22 +260,22 @@
         }
         
         function getRandomCount() {
-            // 80%概率生成3-6个数字，20%概率生成其他数量
-            const isCommon = Math.random() < 0.8;
+            // 95%概率生成2-4个数字，5%概率生成其他数量
+            const isCommon = Math.random() < 0.95;
             
             if (isCommon) {
-                // 3到6之间的随机数
-                return Math.floor(Math.random() * 4) + 3;
+                // 2到4之间的随机数
+                return Math.floor(Math.random() * 3) + 2;
             } else {
-                // 1,2,7,8,9,10
-                const uncommonCounts = [1, 2, 7, 8, 9, 10];
+                // 1,5,6
+                const uncommonCounts = [1, 5, 6];
                 return uncommonCounts[Math.floor(Math.random() * uncommonCounts.length)];
             }
         }
         
         function getRandomNumberWithColor() {
             // 生成1-10的随机数字
-            const number = Math.floor(Math.random() * 10) + 1;
+            const number = getRandomNumberWithWeight();
             
             // 根据概率确定颜色
             const color = getRandomColor();
@@ -281,18 +283,41 @@
             return { number, color };
         }
         
+        function getRandomNumberWithWeight() {
+            // 对于红色数字，数字越高概率越低
+            // 这里我们使用一个简单的加权算法
+            const weights = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]; // 数字1权重最高，10权重最低
+            const totalWeight = weights.reduce((a, b) => a + b, 0);
+            
+            let random = Math.random() * totalWeight;
+            for (let i = 0; i < weights.length; i++) {
+                random -= weights[i];
+                if (random < 0) {
+                    return i + 1;
+                }
+            }
+            
+            return 1; // 默认返回1
+        }
+        
         function getRandomColor() {
             const randomValue = Math.random() * 100;
             
-            if (randomValue < 40) {
+            if (randomValue < 50) {
                 return 'green';
-            } else if (randomValue < 70) {
+            } else if (randomValue < 50 + 44.073) {
                 return 'blue';
-            } else if (randomValue < 90) {
+            } else if (randomValue < 50 + 44.073 + 5) {
                 return 'purple';
-            } else if (randomValue < 99) {
+            } else if (randomValue < 50 + 44.073 + 5 + 0.618) {
                 return 'golden';
+            } else if (randomValue < 50 + 44.073 + 5 + 0.618 + 0.1545) {
+                return 'red'; // 数字10的红色概率
+            } else if (randomValue < 50 + 44.073 + 5 + 0.618 + 0.309) {
+                // 对于红色数字1，我们使用深红色
+                return 'deep-red';
             } else {
+                // 剩余的红色数字
                 return 'red';
             }
         }
