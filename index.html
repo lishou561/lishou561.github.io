@@ -18,6 +18,12 @@
         .header {
             display: flex;
             padding: 20px;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .buttons-container {
+            display: flex;
         }
         
         .btn {
@@ -30,6 +36,27 @@
             cursor: pointer;
         }
         
+        .total-container {
+            text-align: right;
+            padding: 10px 15px;
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 120px;
+        }
+        
+        .total-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .total-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
         .center-container {
             flex: 1;
             display: flex;
@@ -38,10 +65,25 @@
             flex-direction: column;
         }
         
+        .generate-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
         .generate-btn {
             padding: 12px 25px;
             font-size: 1.1rem;
             background-color: #2196F3;
+        }
+        
+        .generate-btn-2 {
+            background-color: #9C27B0;
+        }
+        
+        .generate-btn-3 {
+            background-color: #FF9800;
         }
         
         .modal {
@@ -53,17 +95,28 @@
             height: 100%;
             background-color: rgba(0,0,0,0.5);
             z-index: 1000;
+            overflow: auto;
         }
         
         .modal-content {
             position: relative;
             background-color: white;
-            margin: 10% auto;
+            margin: 5% auto;
             padding: 20px;
-            width: 60%;
-            max-width: 500px;
+            width: 80%;
+            max-width: 600px;
             border-radius: 5px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-body {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 5px;
         }
         
         .close {
@@ -72,6 +125,7 @@
             right: 15px;
             font-size: 20px;
             cursor: pointer;
+            z-index: 10;
         }
         
         .color-box {
@@ -106,16 +160,51 @@
             padding: 10px;
             border-bottom: 1px solid #eee;
         }
+        
+        .mode-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* 滚动条样式 */
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <button id="probability-btn" class="btn">概率分布</button>
-        <button id="history-btn" class="btn">历史记录</button>
+        <div class="buttons-container">
+            <button id="probability-btn" class="btn">概率介绍</button>
+            <button id="history-btn" class="btn">历史记录</button>
+        </div>
+        <div class="total-container">
+            <div class="total-label">钱总计：</div>
+            <div class="total-value" id="total-value">0</div>
+        </div>
     </div>
     
     <div class="center-container">
-        <button id="generate-btn" class="btn generate-btn">生成随机数字</button>
+        <div class="generate-buttons">
+            <button id="generate-btn" class="btn generate-btn">普通模式</button>
+            <button id="generate-btn-2" class="btn generate-btn generate-btn-2">机密模式(需消耗50)</button>
+            <button id="generate-btn-3" class="btn generate-btn generate-btn-3">绝密模式(消耗100)</button>
+        </div>
     </div>
     
     <!-- 概率分布弹窗 -->
@@ -123,13 +212,17 @@
         <div class="modal-content">
             <span class="close" data-modal="probability-modal">&times;</span>
             <h2>概率分布</h2>
-            <p><span class="color-box green"></span> 绿色: 50%</p>
-            <p><span class="color-box blue"></span> 蓝色: 44%</p>
-            <p><span class="color-box purple"></span> 紫色: 5%</p>
-            <p><span class="color-box golden"></span> 金色: 0.618%</p>
-            <p><span class="color-box red"></span> 红色: 0.309%</p>
-            <p><span class="color-box deep-red"></span> 深红色: 0.0618%</p>
-            <p>生成1-6个数字的概率</p>
+            <div class="modal-body">
+                <h3>普通模式</h3>
+                <p><span class="color-box green"></span> 绿色: 50%</p>
+                <p><span class="color-box blue"></span> 蓝色: 44.0112%</p>
+                <p><span class="color-box purple"></span> 紫色: 5%</p>
+                <p><span class="color-box golden"></span> 金色: 0.618%</p>
+                <p><span class="color-box red"></span> 红色: 0.309%</p>
+                <p><span class="color-box deep-red"></span> 深红色(非洲之心): 0.0618%</p>
+                
+          
+            </div>
         </div>
     </div>
     
@@ -138,7 +231,9 @@
         <div class="modal-content">
             <span class="close" data-modal="history-modal">&times;</span>
             <h2>历史记录</h2>
-            <div id="history-list"></div>
+            <div class="modal-body" id="history-body">
+                <div id="history-list"></div>
+            </div>
         </div>
     </div>
     
@@ -147,23 +242,32 @@
         <div class="modal-content">
             <span class="close" data-modal="result-modal">&times;</span>
             <h2>生成结果</h2>
-            <div id="result"></div>
+            <div class="modal-body">
+                <div id="result"></div>
+                <div id="mode-info" class="mode-info"></div>
+            </div>
         </div>
     </div>
 
     <script>
         // 历史记录数组
         let history = [];
+        // 总计变量
+        let totalSum = 0;
         
         // 获取DOM元素
         const probabilityBtn = document.getElementById('probability-btn');
         const historyBtn = document.getElementById('history-btn');
         const generateBtn = document.getElementById('generate-btn');
+        const generateBtn2 = document.getElementById('generate-btn-2');
+        const generateBtn3 = document.getElementById('generate-btn-3');
         const probabilityModal = document.getElementById('probability-modal');
         const historyModal = document.getElementById('history-modal');
         const resultModal = document.getElementById('result-modal');
         const historyList = document.getElementById('history-list');
         const resultContainer = document.getElementById('result');
+        const totalValue = document.getElementById('total-value');
+        const modeInfo = document.getElementById('mode-info');
         const closeButtons = document.querySelectorAll('.close');
         
         // 显示概率分布弹窗
@@ -177,9 +281,27 @@
             historyModal.style.display = 'block';
         });
         
-        // 生成随机数字
+        // 生成随机数字 - 普通模式
         generateBtn.addEventListener('click', function() {
-            generateRandomNumbers();
+            generateRandomNumbers(0);
+        });
+        
+        // 生成随机数字 - 消耗50积分模式
+        generateBtn2.addEventListener('click', function() {
+            if (totalSum < 50) {
+                alert("你钱不够了！不能猛攻！需要50入场费。");
+                return;
+            }
+            generateRandomNumbers(50);
+        });
+        
+        // 生成随机数字 - 消耗100积分模式
+        generateBtn3.addEventListener('click', function() {
+            if (totalSum < 100) {
+                alert("你钱不够了！需要100入场费。");
+                return;
+            }
+            generateRandomNumbers(100);
         });
         
         // 关闭弹窗
@@ -210,8 +332,12 @@
                 const historyItem = document.createElement('div');
                 historyItem.className = 'history-item';
                 
+                let modeText = '';
+                if (item.mode === 50) modeText = ' (消耗50积分模式)';
+                else if (item.mode === 100) modeText = ' (消耗100积分模式)';
+                
                 const title = document.createElement('p');
-                title.textContent = `第 ${index + 1} 次生成 (${item.count} 个数字)`;
+                title.textContent = `第 ${index + 1} 次生成${modeText} (${item.count} 个数字，总和: ${item.sum})`;
                 
                 const numbers = document.createElement('div');
                 item.numbers.forEach(numberData => {
@@ -228,18 +354,28 @@
         }
         
         // 生成随机数字
-        function generateRandomNumbers() {
+        function generateRandomNumbers(modeCost) {
             // 清空之前的结果
             resultContainer.innerHTML = '';
+            modeInfo.textContent = '';
             
             // 确定生成数字的数量 (2-4的概率为95%)
             const count = getRandomCount();
             
             // 生成数字
             const numbers = [];
+            let currentSum = 0;
+            
             for (let i = 0; i < count; i++) {
-                numbers.push(getRandomNumberWithColor());
+                const numberData = getRandomNumberWithColor(modeCost);
+                numbers.push(numberData);
+                currentSum += numberData.number;
             }
+            
+            // 更新总计
+            totalSum += currentSum;
+            totalSum -= modeCost; // 扣除消耗的积分
+            totalValue.textContent = totalSum;
             
             // 显示结果
             numbers.forEach(numberData => {
@@ -249,10 +385,19 @@
                 resultContainer.appendChild(numberElement);
             });
             
+            // 设置模式信息
+            if (modeCost === 50) {
+                modeInfo.textContent = "本次生成消耗了50积分，深红色概率提升50%，紫色概率提升4倍，金色概率提升2倍";
+            } else if (modeCost === 100) {
+                modeInfo.textContent = "本次生成消耗了100积分，紫色概率提升8倍，金色概率提升10倍";
+            }
+            
             // 添加到历史记录
             history.unshift({
                 count: count,
-                numbers: numbers
+                numbers: numbers,
+                sum: currentSum,
+                mode: modeCost
             });
             
             // 显示结果弹窗
@@ -273,52 +418,148 @@
             }
         }
         
-        function getRandomNumberWithColor() {
-            // 生成1-10的随机数字
-            const number = getRandomNumberWithWeight();
-            
+        function getRandomNumberWithColor(modeCost) {
             // 根据概率确定颜色
-            const color = getRandomColor();
+            const color = getRandomColor(modeCost);
+            
+            // 根据颜色生成对应范围的数字（数字越大概率越小）
+            let number;
+            switch(color) {
+                case 'green':
+                    number = getWeightedRandomNumber(1, 10);
+                    break;
+                case 'blue':
+                    number = getWeightedRandomNumber(11, 20);
+                    break;
+                case 'purple':
+                    number = getWeightedRandomNumber(21, 30);
+                    break;
+                case 'golden':
+                    number = getWeightedRandomNumber(31, 40);
+                    break;
+                case 'red':
+                    number = getWeightedRandomNumber(41, 50);
+                    break;
+                case 'deep-red':
+                    number = 1000; // 深红色固定为1000
+                    break;
+                default:
+                    number = getWeightedRandomNumber(1, 10);
+            }
             
             return { number, color };
         }
         
-        function getRandomNumberWithWeight() {
-            // 对于红色数字，数字越高概率越低
-            // 这里我们使用一个简单的加权算法
-            const weights = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]; // 数字1权重最高，10权重最低
+        // 生成加权随机数（数字越大概率越小）
+        function getWeightedRandomNumber(min, max) {
+            const range = max - min + 1;
+            const weights = [];
+            
+            // 创建权重数组，数字越大权重越小
+            for (let i = 0; i < range; i++) {
+                weights.push(range - i);
+            }
+            
+            // 计算总权重
             const totalWeight = weights.reduce((a, b) => a + b, 0);
             
+            // 生成随机数
             let random = Math.random() * totalWeight;
-            for (let i = 0; i < weights.length; i++) {
+            for (let i = 0; i < range; i++) {
                 random -= weights[i];
                 if (random < 0) {
-                    return i + 1;
+                    return min + i;
                 }
             }
             
-            return 1; // 默认返回1
+            return min; // 默认返回最小值
         }
         
-        function getRandomColor() {
+        function getRandomColor(modeCost) {
             const randomValue = Math.random() * 100;
             
-            if (randomValue < 50) {
-                return 'green';
-            } else if (randomValue < 50 + 44.073) {
-                return 'blue';
-            } else if (randomValue < 50 + 44.073 + 5) {
-                return 'purple';
-            } else if (randomValue < 50 + 44.073 + 5 + 0.618) {
-                return 'golden';
-            } else if (randomValue < 50 + 44.073 + 5 + 0.618 + 0.1545) {
-                return 'red'; // 数字10的红色概率
-            } else if (randomValue < 50 + 44.073 + 5 + 0.618 + 0.309) {
-                // 对于红色数字1，我们使用深红色
-                return 'deep-red';
-            } else {
-                // 剩余的红色数字
-                return 'red';
+            // 根据模式调整概率分布
+            if (modeCost === 0) {
+                // 普通模式 - 原始概率
+                if (randomValue < 50) {
+                    return 'green';
+                } else if (randomValue < 50 + 44.0112) {
+                    return 'blue';
+                } else if (randomValue < 50 + 44.0112 + 5) {
+                    return 'purple';
+                } else if (randomValue < 50 + 44.0112 + 5 + 0.618) {
+                    return 'golden';
+                } else if (randomValue < 50 + 44.0112 + 5 + 0.618 + 0.309) {
+                    return 'red';
+                } else {
+                    return 'deep-red';
+                }
+            } else if (modeCost === 50) {
+                // 消耗50积分模式 - 深红提升50%，紫色4倍，金色2倍
+                // 计算调整后的概率
+                const purpleProb = 5 * 4; // 4倍
+                const goldenProb = 0.618 * 2; // 2倍
+                const redProb = 0.309; // 保持不变
+                const deepRedProb = 0.0618 * 1.5; // 提升50%
+                
+                // 计算稀有颜色总概率
+                const rareTotal = purpleProb + goldenProb + redProb + deepRedProb;
+                
+                // 计算剩余概率分配给绿色和蓝色
+                const commonTotal = 100 - rareTotal;
+                const greenRatio = 50 / (50 + 44.0112);
+                const blueRatio = 44.0112 / (50 + 44.0112);
+                
+                const greenProb = commonTotal * greenRatio;
+                const blueProb = commonTotal * blueRatio;
+                
+                // 根据调整后的概率返回颜色
+                if (randomValue < greenProb) {
+                    return 'green';
+                } else if (randomValue < greenProb + blueProb) {
+                    return 'blue';
+                } else if (randomValue < greenProb + blueProb + purpleProb) {
+                    return 'purple';
+                } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb) {
+                    return 'golden';
+                } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb + redProb) {
+                    return 'red';
+                } else {
+                    return 'deep-red';
+                }
+            } else if (modeCost === 100) {
+                // 消耗100积分模式 - 深红保持不变，紫色8倍，金色10倍
+                // 计算调整后的概率
+                const purpleProb = 5 * 8; // 8倍
+                const goldenProb = 0.618 * 10; // 10倍
+                const redProb = 0.309; // 保持不变
+                const deepRedProb = 0.0618; // 保持不变
+                
+                // 计算稀有颜色总概率
+                const rareTotal = purpleProb + goldenProb + redProb + deepRedProb;
+                
+                // 计算剩余概率分配给绿色和蓝色
+                const commonTotal = 100 - rareTotal;
+                const greenRatio = 50 / (50 + 44.0112);
+                const blueRatio = 44.0112 / (50 + 44.0112);
+                
+                const greenProb = commonTotal * greenRatio;
+                const blueProb = commonTotal * blueRatio;
+                
+                // 根据调整后的概率返回颜色
+                if (randomValue < greenProb) {
+                    return 'green';
+                } else if (randomValue < greenProb + blueProb) {
+                    return 'blue';
+                } else if (randomValue < greenProb + blueProb + purpleProb) {
+                    return 'purple';
+                } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb) {
+                    return 'golden';
+                } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb + redProb) {
+                    return 'red';
+                } else {
+                    return 'deep-red';
+                }
             }
         }
     </script>
