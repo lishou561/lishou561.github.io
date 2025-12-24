@@ -3,661 +3,1252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>模拟爆率</title>
+    <title>离梦电竞</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
         }
         
-        .header {
+        :root {
+            --primary-color: #0a84ff;
+            --secondary-color: #5e5ce6;
+            --accent-color: #bf5af2;
+            --bg-dark: #0f0f23;
+            --bg-card: #1a1a2e;
+            --text-light: #ffffff;
+            --text-gray: #b0b0b0;
+            --border-color: #2a2a3e;
+            --shadow-color: rgba(10, 132, 255, 0.3);
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .container {
+            padding-bottom: 70px;
+            min-height: 100vh;
+        }
+        
+        /* 头部样式 */
+        header {
+            background-color: var(--bg-card);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            z-index: 10;
             display: flex;
-            padding: 20px;
+            align-items: center;
             justify-content: space-between;
-            align-items: flex-start;
         }
         
-        .buttons-container {
+        .logo {
             display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .btn {
-            padding: 10px 15px;
-            margin-right: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        .logo i {
+            color: var(--primary-color);
+            font-size: 24px;
         }
         
-        .total-container {
-            text-align: right;
-            padding: 10px 15px;
-            background-color: #fff;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            min-width: 120px;
+        .logo h1 {
+            font-size: 22px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
         }
         
-        .total-label {
+        .back-btn {
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
             font-size: 14px;
-            color: #666;
+            visibility: hidden;
+        }
+        
+        .back-btn.visible {
+            visibility: visible;
+        }
+        
+        .back-btn i {
+            font-size: 16px;
+        }
+        
+        /* 轮播图样式 */
+        .carousel {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            margin: 15px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .carousel-inner {
+            display: flex;
+            height: 100%;
+            transition: transform 0.5s ease;
+        }
+        
+        .carousel-item {
+            min-width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: flex-end;
+            padding: 15px;
+            position: relative;
+        }
+        
+        .carousel-item::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+        }
+        
+        .carousel-caption {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        
+        .carousel-caption h3 {
+            font-size: 18px;
             margin-bottom: 5px;
         }
         
-        .total-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
+        .carousel-caption p {
+            font-size: 14px;
+            opacity: 0.9;
         }
         
-        .center-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        
-        .generate-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .generate-btn {
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            background-color: #2196F3;
-        }
-        
-        .generate-btn-2 {
-            background-color: #9C27B0;
-        }
-        
-        .generate-btn-3 {
-            background-color: #FF9800;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            overflow: auto;
-        }
-        
-        .modal-content {
-            position: relative;
-            background-color: white;
-            margin: 5% auto;
-            padding: 20px;
-            width: 80%;
-            max-width: 600px;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            max-height: 80vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .modal-body {
-            overflow-y: auto;
-            flex: 1;
-            padding-right: 5px;
-        }
-        
-        .close {
+        .carousel-controls {
             position: absolute;
-            top: 10px;
+            bottom: 15px;
             right: 15px;
-            font-size: 20px;
-            cursor: pointer;
-            z-index: 10;
+            display: flex;
+            gap: 8px;
+            z-index: 3;
         }
         
-        .color-box {
-            display: inline-block;
-            width: 15px;
-            height: 15px;
-            margin-right: 5px;
-            border: 1px solid #ccc;
-        }
-        
-        .red { background-color: #ff4d4d; }
-        .deep-red { background-color: #8B0000; }
-        .golden { background-color: #ffcc00; }
-        .purple { background-color: #b266ff; }
-        .blue { background-color: #4da6ff; }
-        .green { background-color: #66cc66; }
-        
-        .number-item {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            line-height: 40px;
-            text-align: center;
-            margin: 5px;
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            font-weight: bold;
-            color: white;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
         
-        .history-item {
-            margin-bottom: 10px;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+        .carousel-dot.active {
+            background-color: var(--primary-color);
+            transform: scale(1.2);
         }
         
-        .mode-info {
-            font-size: 0.9rem;
-            color: #666;
+        /* 设备选择按钮 */
+        .device-selection {
+            display: flex;
+            margin: 25px 15px;
+            gap: 15px;
+        }
+        
+        .device-btn {
+            flex: 1;
+            padding: 18px 10px;
+            border-radius: 12px;
+            border: none;
+            background-color: var(--bg-card);
+            color: var(--text-light);
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .device-btn i {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+        
+        .device-btn.active {
+            background-color: rgba(10, 132, 255, 0.15);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px var(--shadow-color);
+        }
+        
+        .device-btn:hover {
+            transform: translateY(-3px);
+        }
+        
+        /* 服务区域样式 */
+        .service-section {
+            margin: 25px 15px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            position: relative;
+            padding-left: 12px;
+        }
+        
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+        
+        .more-btn {
+            color: var(--text-gray);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .more-btn:hover {
+            color: var(--primary-color);
+        }
+        
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .service-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-light);
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .service-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            font-size: 24px;
+        }
+        
+        .service-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .service-desc {
+            color: var(--text-gray);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .service-price {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 18px;
             margin-top: 5px;
         }
         
-        /* 滚动条样式 */
-        .modal-body::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .modal-body::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        
-        .modal-body::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-        }
-        
-        .modal-body::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-        
-        .hidden-score-info {
+        /* 底部导航 */
+        .bottom-nav {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-size: 14px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: var(--bg-card);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid var(--border-color);
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: color 0.3s;
+            padding: 5px 15px;
+            border-radius: 8px;
+        }
+        
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+        
+        .nav-item i {
+            font-size: 22px;
+        }
+        
+        .nav-item span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        /* 页面样式 */
+        .page {
             display: none;
+            padding: 20px 15px;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
+        
+        /* 公告页面 */
+        .announcement-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .announcement-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .announcement-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .announcement-date {
+            color: var(--text-gray);
+            font-size: 14px;
+            font-weight: normal;
+        }
+        
+        .announcement-content {
+            color: var(--text-gray);
+            line-height: 1.5;
+        }
+        
+        /* 空公告提示 */
+        .empty-announcement {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-gray);
+        }
+        
+        .empty-announcement i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--border-color);
+        }
+        
+        .empty-announcement h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .empty-announcement p {
+            font-size: 14px;
+        }
+        
+        /* 个人中心页面 */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background-color: var(--bg-card);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .profile-info h2 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        
+        .profile-info p {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+        
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .menu-item {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .menu-item:hover {
+            background-color: rgba(10, 132, 255, 0.1);
+        }
+        
+        .menu-item-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .menu-item i {
+            font-size: 20px;
+            color: var(--primary-color);
+            width: 24px;
+        }
+        
+        /* 服务页面样式 */
+        .page-header {
+            margin: 20px 0 25px;
+            padding-left: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .page-subtitle {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+        
+        /* 服务筛选 */
+        .service-filter {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 5px;
+        }
+        
+        .filter-btn {
+            padding: 10px 18px;
+            background-color: var(--bg-card);
+            border: none;
+            border-radius: 20px;
+            color: var(--text-light);
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        /* 空盒子样式 */
+        .empty-box {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 2px dashed var(--border-color);
+        }
+        
+        .empty-box i {
+            font-size: 48px;
+            color: var(--border-color);
+            margin-bottom: 15px;
+        }
+        
+        .empty-box h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--text-gray);
+        }
+        
+        .empty-box p {
+            color: var(--text-gray);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 500px) {
+            body {
+                box-shadow: none;
+            }
+            
+            .carousel {
+                height: 180px;
+            }
+            
+            .service-card {
+                padding: 15px;
+            }
+            
+            .empty-box {
+                padding: 25px 15px;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="buttons-container">
-            <button id="probability-btn" class="btn">概率介绍</button>
-            <button id="history-btn" class="btn">历史记录</button>
+    <div class="container">
+        <!-- 头部 -->
+        <header>
+            <a href="#" class="back-btn" id="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                <span>返回</span>
+            </a>
+            <div class="logo" id="header-logo">
+                <i class="fas fa-gamepad"></i>
+                <h1>离梦电竞</h1>
+            </div>
+            <div style="width: 60px;"></div> <!-- 占位 -->
+        </header>
+        
+        <!-- 首页内容 -->
+        <div id="home-page" class="page active">
+            <!-- 轮播图 -->
+            <div class="carousel">
+                <div class="carousel-inner" id="carousel-inner">
+                    <div class="carousel-item" style="background-image: url('jiage.jpg');background-size: cover;background-repeat: no-repeat;">
+                        <div class="carousel-caption">
+                            <h3>离梦电竞</h3>
+                            <p>价格表！<br>下单微信：QJN18993933856</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item" style="background-image: url('dashou.jpg');background-size: cover;background-repeat: no-repeat;">
+                        <div class="carousel-caption">
+                            <h3>招募打手</h3>
+                            <p>绝密KD 3以上<br>考核微信：QJN18993933856</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item" style="background-image: url('dashou2.jpg');background-size: cover;background-repeat: no-repeat;">
+                        <div class="carousel-caption">
+                            <h3>售后问题</h3>
+                            <p>遇到任何打手问题<br>管理微信：QJN18993933856</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-controls">
+                    <div class="carousel-dot active" data-index="0"></div>
+                    <div class="carousel-dot" data-index="1"></div>
+                    <div class="carousel-dot" data-index="2"></div>
+                </div>
+            </div>
+            
+            <!-- 设备选择 -->
+            <div class="device-selection">
+                <button class="device-btn active" id="pc-btn">
+                    <i class="fas fa-desktop"></i>
+                    <span>PC端服务</span>
+                </button>
+                <button class="device-btn" id="mobile-btn">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>手机端服务</span>
+                </button>
+            </div>
+            
+            <!-- 推荐服务 -->
+            <div class="service-section">
+                <div class="section-header">
+                    <h2 class="section-title">推荐服务</h2>
+                    <div class="more-btn" id="more-recommend">
+                        <span>更多</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                <div class="service-grid" id="recommend-services">
+                    <!-- 推荐服务将通过JS动态加载 -->
+                </div>
+            </div>
+            
+            <!-- 热门服务 -->
+            <div class="service-section">
+                <div class="section-header">
+                    <h2 class="section-title" id="hot-title">PC端热门服务</h2>
+                    <div class="more-btn" id="more-hot">
+                        <span>更多</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                <div class="service-grid" id="hot-services">
+                    <!-- 热门服务将通过JS动态加载 -->
+                </div>
+            </div>
         </div>
-        <div class="total-container">
-            <div class="total-label">总计：</div>
-            <div class="total-value" id="total-value">0</div>
+        
+        <!-- 公告页面 -->
+        <div id="announcement-page" class="page">
+            <h2 class="page-title">俱乐部公告</h2>
+            <div class="announcement-list" id="announcement-list">
+                <!-- 公告将通过JS动态加载 -->
+            </div>
         </div>
-    </div>
-    
-    <div class="center-container">
-        <div class="generate-buttons">
-            <button id="generate-btn" class="btn generate-btn">普通模式</button>
-            <button id="generate-btn-2" class="btn generate-btn generate-btn-2">机密模式(需消耗50)</button>
-            <button id="generate-btn-3" class="btn generate-btn generate-btn-3">绝密模式(需消耗100)</button>
+        
+        <!-- 个人中心页面 -->
+        <div id="profile-page" class="page">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-chess-rook"></i>
+                </div>
+                <div class="profile-info">
+                    <h2>XXJ</h2>
+                    <p>余额: </p>
+                </div>
+            </div>
+            
+            <div class="menu-list">
+                <div class="menu-item">
+                    <div class="menu-item-left">
+                        <i class="fas fa-history"></i>
+                        <span>我的订单</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-left">
+                        <i class="fas fa-wallet"></i>
+                        <span>余额充值</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-left">
+                        <i class="fas fa-star"></i>
+                        <span>会员特权</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-left">
+                        <i class="fas fa-cog"></i>
+                        <span>设置</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
         </div>
-    </div>
-    
-    <!-- 隐藏分信息显示 -->
-    <div class="hidden-score-info" id="hidden-score-info">
-        隐藏分: <span id="hidden-score-value">0</span> 
-    </div>
-    
-    <!-- 概率分布弹窗 -->
-    <div id="probability-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" data-modal="probability-modal">&times;</span>
-            <h2>概率介绍</h2>
-            <div class="modal-body">
-                <h3>普通模式</h3>
-                <p><span class="color-box green"></span> 绿色: 50%</p>
-                <p><span class="color-box blue"></span> 蓝色: 44.0112%</p>
-                <p><span class="color-box purple"></span> 紫色: 5%</p>
-                <p><span class="color-box golden"></span> 金色: 0.618%</p>
-                <p><span class="color-box red"></span> 红色: 0.309%</p>
-                <p><span class="color-box deep-red"></span> 深红色(非洲之心): 0.0618%</p>
-                
-                <h3>隐藏分机制</h3>
-                <p>隐藏分越高出红概率越高，隐藏分越低出红概率越低</p>
-                <p>每玩1分钟加一分隐藏分</p>
-                <p>每次点击一次加5分</p>
-                <p>每次出红色后减50分，总计分数每加500分就减50分</p>
+        
+        <!-- PC端服务页面 -->
+        <div id="pc-services-page" class="page">
+            <!-- 页面标题 -->
+            <div class="page-header">
+                <h1 class="page-title">PC端所有服务</h1>
+                <p class="page-subtitle">选择您需要的PC端服务项目</p>
+            </div>
+            
+            <!-- 服务筛选 -->
+            <div class="service-filter">
+                <button class="filter-btn active" data-filter="all">全部</button>
+                <button class="filter-btn" data-filter="game">绝密航天</button>
+                <button class="filter-btn" data-filter="training">绝密巴克仕</button>
+                <button class="filter-btn" data-filter="experience">潮汐监狱</button>
+                <button class="filter-btn" data-filter="equipment">趣味单</button>
+            </div>
+            
+            <!-- 服务网格 -->
+            <div class="service-grid" id="pc-service-grid">
+                <!-- 服务卡片将通过JS动态加载 -->
+            </div>
+        </div>
+        
+        <!-- 手机端服务页面 -->
+        <div id="mobile-services-page" class="page">
+            <!-- 页面标题 -->
+            <div class="page-header">
+                <h1 class="page-title">手机端所有服务</h1>
+                <p class="page-subtitle">选择您需要的手机端服务项目</p>
+            </div>
+            
+            <!-- 服务筛选 -->
+            <div class="service-filter">
+                <button class="filter-btn active" data-filter="all">全部</button>
+                <button class="filter-btn" data-filter="game">绝密航天</button>
+                <button class="filter-btn" data-filter="training">绝密巴克仕</button>
+                <button class="filter-btn" data-filter="equipment">绝密监狱</button>
+                <button class="filter-btn" data-filter="experience">趣味单</button>
+            </div>
+            
+            <!-- 服务网格 -->
+            <div class="service-grid" id="mobile-service-grid">
+                <!-- 服务卡片将通过JS动态加载 -->
             </div>
         </div>
     </div>
     
-    <!-- 历史记录弹窗 -->
-    <div id="history-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" data-modal="history-modal">&times;</span>
-            <h2>历史记录</h2>
-            <div class="modal-body" id="history-body">
-                <div id="history-list"></div>
-            </div>
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="nav-item active" data-page="home-page">
+            <i class="fas fa-home"></i>
+            <span>首页</span>
         </div>
-    </div>
-    
-    <!-- 结果弹窗 -->
-    <div id="result-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" data-modal="result-modal">&times;</span>
-            <h2>结果</h2>
-            <div class="modal-body">
-                <div id="result"></div>
-                <div id="mode-info" class="mode-info"></div>
-                <div id="hidden-score-effect" class="mode-info"></div>
-            </div>
+        <div class="nav-item" data-page="announcement-page">
+            <i class="fas fa-bullhorn"></i>
+            <span>公告</span>
+        </div>
+        <div class="nav-item" data-page="profile-page">
+            <i class="fas fa-user"></i>
+            <span>我的</span>
         </div>
     </div>
 
     <script>
-        // 历史记录数组
-        let history = [];
-        // 总计变量
-        let totalSum = 0;
-        // 隐藏分变量
-        let hiddenScore = 0;
-        // 上次触发总计减分时的积分
-        let lastDeductionPoint = 0;
-        // 计时器变量
-        let minuteTimer = null;
-        let minutesOnPage = 0;
-        
-        // 获取DOM元素
-        const probabilityBtn = document.getElementById('probability-btn');
-        const historyBtn = document.getElementById('history-btn');
-        const generateBtn = document.getElementById('generate-btn');
-        const generateBtn2 = document.getElementById('generate-btn-2');
-        const generateBtn3 = document.getElementById('generate-btn-3');
-        const probabilityModal = document.getElementById('probability-modal');
-        const historyModal = document.getElementById('history-modal');
-        const resultModal = document.getElementById('result-modal');
-        const historyList = document.getElementById('history-list');
-        const resultContainer = document.getElementById('result');
-        const totalValue = document.getElementById('total-value');
-        const modeInfo = document.getElementById('mode-info');
-        const hiddenScoreInfo = document.getElementById('hidden-score-info');
-        const hiddenScoreValue = document.getElementById('hidden-score-value');
-        const hiddenScoreEffect = document.getElementById('hidden-score-effect');
-        const closeButtons = document.querySelectorAll('.close');
-        
-        // 初始化隐藏分显示
-        hiddenScoreValue.textContent = hiddenScore;
-        
-        // 开始计时器
-        startMinuteTimer();
-        
-        // 显示概率分布弹窗
-        probabilityBtn.addEventListener('click', function() {
-            probabilityModal.style.display = 'block';
-        });
-        
-        // 显示历史记录弹窗
-        historyBtn.addEventListener('click', function() {
-            updateHistoryList();
-            historyModal.style.display = 'block';
-        });
-        
-        // 生成随机数字 - 普通模式
-        generateBtn.addEventListener('click', function() {
-            generateRandomNumbers(0);
-        });
-        
-        // 生成随机数字 - 消耗50积分模式
-        generateBtn2.addEventListener('click', function() {
-            if (totalSum < 50) {
-                alert("钱不够了！要50积分才能开启。");
-                return;
+        // 服务数据
+        const services = {
+            pc: {
+                recommend: [
+                    { id: 1, name: "绝密航天", desc: "保证撤离", showPrice: false, price: "", icon: "fas fa-rocket" },
+                    { id: 2, name: "绝密巴克仕", desc: "保证撤离", showPrice: false, price: "", icon: "fas fa-chess-rook" },
+                    { id: 3, name: "绝密监狱", desc: "猛攻典狱长，保证撤离", showPrice: true, price: "¥150/单局", icon: "fas fa-bars" },
+                    { id: 4, name: "机密体验单", desc: "体验为主，保证撤离", showPrice: true, price: "¥25/一局", icon: "fas fa-user-secret" }
+                ],
+                hot: [
+                    { id: 5, name: "绝密航天", desc: "", showPrice: false, price: "", icon: "fas fa-rocket" },
+                    { id: 6, name: "绝密巴克仕", desc: "", showPrice: false, price: "", icon: "fas fa-chess-rook" }
+                ],
+                all: [
+                    { id: 1, name: "绝航400万撤离", desc: "保证撤离", price: "￥45/单局", icon: "fas fa-rocket", category: "game" },
+                    { id: 2, name: "绝航600万撤离", desc: "保证撤离", price: "￥75/单局", icon: "fas fa-rocket", category: "game" },
+                    { id: 3, name: "绝航800万撤离", desc: "保证撤离", price: "￥100/单局", icon: "fas fa-rocket", category: "game" },
+                    { id: 4, name: "绝航1000万撤离", desc: "保证撤离", price: "￥125/单局", icon: "fas fa-rocket", category: "game" },
+                    { id: 5, name: "绝巴400万撤离", desc: "保证撤离", price: "￥45/单局", icon: "fas fa-chess-rook", category: "training" },
+                    { id: 6, name: "绝巴600万撤离", desc: "保证撤离", price: "￥75/单局", icon: "fas fa-chess-rook", category: "training" },
+                    { id: 7, name: "绝巴1000万撤离", desc: "保证撤离", price: "￥100/单局", icon: "fas fa-chess-rook", category: "training" },
+                    { id: 8, name: "监狱1000万撤离", desc: "保证撤离", price: "￥150/单局", icon: "fas fa-bars", category: "experience" }
+                ]
+            },
+            mobile: {
+                recommend: [
+                    { id: 7, name: "绝密航天", desc: "保证撤离", showPrice: false, price: "", icon: "fas fa-rocket" },
+                    { id: 8, name: "绝密巴克仕", desc: "保证撤离", showPrice: false, price: "", icon: "fas fa-chess-rook" },
+                    { id: 9, name: "绝密监狱", desc: "保证撤离", showPrice: true, price: "¥140/单局", icon: "fas fa-bars" },
+                    { id: 10, name: "机密体验单", desc: "以体验为主，保证撤离", showPrice: true, price: "¥25/一局", icon: "fas fa-user-secret" }
+                ],
+                hot: [],
+                all: [
+                    { id: 1, name: "绝航400万撤离", desc: "保证撤离", price: "￥45/单局", icon: "fas fa-rocket", category: "game" },
+                    { id: 2, name: "绝航600万撤离", desc: "保证撤离", price: "￥75/单局", icon: "fas fa-rocket", category: "game" },
+                    { id: 3, name: "绝航800万撤离", desc: "保证撤离", price: "￥100/单局", icon: "fas fa-rocket", category: "game" },
+                    { id: 4, name: "绝航1000万撤离", desc: "保证撤离", price: "￥125/单局", icon: "fas fa-rocket", category: "game" },
+                    { id: 5, name: "绝巴400万撤离", desc: "保证撤离", price: "￥45/单局", icon: "fas fa-chess-rook", category: "training" },
+                    { id: 6, name: "绝巴600万撤离", desc: "保证撤离", price: "￥75/单局", icon: "fas fa-chess-rook", category: "training" },
+                    { id: 7, name: "绝巴1000万撤离", desc: "保证撤离", price: "￥125/单局", icon: "fas fa-chess-rook", category: "training" },
+                    { id: 8, name: "监狱1000万撤离", desc: "保证撤离", price: "￥140/单局", icon: "fas fa-bars", category: "equipment" }
+                ]
             }
-            generateRandomNumbers(50);
-        });
+        };
+
+        // 公告数据 - 已清空
+        const announcements = [];
+
+        // 页面元素
+        const carouselInner = document.getElementById('carousel-inner');
+        const carouselDots = document.querySelectorAll('.carousel-dot');
+        const deviceBtns = document.querySelectorAll('.device-btn');
+        const recommendServicesGrid = document.getElementById('recommend-services');
+        const hotServicesGrid = document.getElementById('hot-services');
+        const hotTitle = document.getElementById('hot-title');
+        const moreRecommendBtn = document.getElementById('more-recommend');
+        const moreHotBtn = document.getElementById('more-hot');
+        const announcementList = document.getElementById('announcement-list');
+        const navItems = document.querySelectorAll('.nav-item');
+        const pages = document.querySelectorAll('.page');
+        const backBtn = document.getElementById('back-btn');
+        const headerLogo = document.getElementById('header-logo');
+        const pcServiceGrid = document.getElementById('pc-service-grid');
+        const mobileServiceGrid = document.getElementById('mobile-service-grid');
+        const pcFilterBtns = document.querySelectorAll('#pc-services-page .filter-btn');
+        const mobileFilterBtns = document.querySelectorAll('#mobile-services-page .filter-btn');
         
-        // 生成随机数字 - 消耗100积分模式
-        generateBtn3.addEventListener('click', function() {
-            if (totalSum < 100) {
-                alert("没钱了！用不了。");
-                return;
-            }
-            generateRandomNumbers(100);
-        });
+        // 当前设备类型
+        let currentDevice = 'pc';
+        let currentPage = 'home-page';
         
-        // 关闭弹窗
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const modalId = this.getAttribute('data-modal');
-                document.getElementById(modalId).style.display = 'none';
-            });
-        });
+        // 轮播图相关
+        let currentSlide = 0;
+        const slideCount = carouselDots.length;
+        let carouselInterval;
         
-        // 点击弹窗外部关闭弹窗
-        window.addEventListener('click', function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        });
-        
-        // 更新历史记录列表
-        function updateHistoryList() {
-            historyList.innerHTML = '';
+        // 初始化函数
+        function init() {
+            // 初始化轮播图
+            initCarousel();
             
-            if (history.length === 0) {
-                historyList.innerHTML = '<p>暂无历史记录</p>';
-                return;
-            }
+            // 初始化服务列表
+            renderServices(currentDevice);
             
-            history.forEach((item, index) => {
-                const historyItem = document.createElement('div');
-                historyItem.className = 'history-item';
-                
-                let modeText = '';
-                if (item.mode === 50) modeText = ' (机密模式)';
-                else if (item.mode === 100) modeText = ' (绝密模式)';
-                
-                const title = document.createElement('p');
-                title.textContent = `第 ${index + 1} 次生成${modeText} (${item.count} 个数字，总和: ${item.sum})`;
-                
-                const numbers = document.createElement('div');
-                item.numbers.forEach(numberData => {
-                    const numberElement = document.createElement('span');
-                    numberElement.className = `number-item ${numberData.color}`;
-                    numberElement.textContent = numberData.number;
-                    numbers.appendChild(numberElement);
+            // 初始化公告列表
+            renderAnnouncements();
+            
+            // 初始化PC端服务列表
+            renderPcServices('all');
+            
+            // 初始化手机端服务列表
+            renderMobileServices('all');
+            
+            // 绑定事件
+            bindEvents();
+            
+            // 设置返回按钮状态
+            updateBackButton();
+        }
+        
+        // 初始化轮播图
+        function initCarousel() {
+            // 设置轮播自动播放
+            carouselInterval = setInterval(nextSlide, 4000);
+            
+            // 绑定轮播点点击事件
+            carouselDots.forEach(dot => {
+                dot.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    goToSlide(index);
                 });
-                
-                historyItem.appendChild(title);
-                historyItem.appendChild(numbers);
-                historyList.appendChild(historyItem);
             });
-        }
-        
-        // 开始每分钟计时器
-        function startMinuteTimer() {
-            minuteTimer = setInterval(function() {
-                minutesOnPage++;
-                hiddenScore += 1; // 每分钟加1分
-                updateHiddenScoreDisplay();
-            }, 60000); // 每分钟60000毫秒
-        }
-        
-        // 更新隐藏分显示
-        function updateHiddenScoreDisplay() {
-            hiddenScoreValue.textContent = hiddenScore;
-            // 显示隐藏分信息
-            hiddenScoreInfo.style.display = 'block';
-        }
-        
-        // 生成随机数字
-        function generateRandomNumbers(modeCost) {
-            // 清空之前的结果
-            resultContainer.innerHTML = '';
-            modeInfo.textContent = '';
-            hiddenScoreEffect.textContent = '';
             
-            // 确定生成数字的数量 (2-4的概率为95%)
-            const count = getRandomCount();
+            // 绑定轮播图触摸事件
+            let startX = 0;
+            let endX = 0;
             
-            // 生成数字
-            const numbers = [];
-            let currentSum = 0;
-            let hasRed = false;
+            carouselInner.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                clearInterval(carouselInterval);
+            });
             
-            for (let i = 0; i < count; i++) {
-                const numberData = getRandomNumberWithColor(modeCost);
-                numbers.push(numberData);
-                currentSum += numberData.number;
+            carouselInner.addEventListener('touchend', (e) => {
+                endX = e.changedTouches[0].clientX;
+                handleSwipe();
+                carouselInterval = setInterval(nextSlide, 4000);
+            });
+            
+            function handleSwipe() {
+                const threshold = 50;
+                const diff = startX - endX;
                 
-                // 检查是否有红色（不包括深红色）
-                if (numberData.color === 'red') {
-                    hasRed = true;
+                if (Math.abs(diff) > threshold) {
+                    if (diff > 0) {
+                        // 向左滑动，下一张
+                        nextSlide();
+                    } else {
+                        // 向右滑动，上一张
+                        prevSlide();
+                    }
                 }
             }
+        }
+        
+        // 下一张轮播图
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slideCount;
+            updateCarousel();
+        }
+        
+        // 上一张轮播图
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slideCount) % slideCount;
+            updateCarousel();
+        }
+        
+        // 跳转到指定轮播图
+        function goToSlide(index) {
+            currentSlide = index;
+            updateCarousel();
+        }
+        
+        // 更新轮播图显示
+        function updateCarousel() {
+            const translateX = -currentSlide * 100;
+            carouselInner.style.transform = `translateX(${translateX}%)`;
             
-            // 更新隐藏分
-            updateHiddenScore(modeCost, hasRed, currentSum);
+            // 更新指示点
+            carouselDots.forEach((dot, index) => {
+                if (index === currentSlide) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+        
+        // 渲染首页服务列表
+        function renderServices(deviceType) {
+            // 更新当前设备类型
+            currentDevice = deviceType;
             
-            // 更新总计
-            totalSum += currentSum;
-            totalSum -= modeCost; // 扣除消耗的积分
-            totalValue.textContent = totalSum;
+            // 更新标题
+            hotTitle.textContent = deviceType === 'pc' ? 'PC端热门服务' : '手机端热门服务';
             
-            // 显示结果
-            numbers.forEach(numberData => {
-                const numberElement = document.createElement('span');
-                numberElement.className = `number-item ${numberData.color}`;
-                numberElement.textContent = numberData.number;
-                resultContainer.appendChild(numberElement);
+            // 清空当前内容
+            recommendServicesGrid.innerHTML = '';
+            hotServicesGrid.innerHTML = '';
+            
+            // 获取对应设备的服务
+            const deviceRecommendServices = services[deviceType].recommend;
+            const deviceHotServices = services[deviceType].hot;
+            
+            // 渲染推荐服务
+            deviceRecommendServices.forEach(service => {
+                const serviceCard = createServiceCard(service, deviceType);
+                recommendServicesGrid.appendChild(serviceCard);
             });
             
-            // 设置模式信息
-            if (modeCost === 50) {
-                modeInfo.textContent = "机密模式";
-            } else if (modeCost === 100) {
-                modeInfo.textContent = "绝密模式";
+            // 渲染热门服务
+            deviceHotServices.forEach(service => {
+                const serviceCard = createServiceCard(service, deviceType);
+                hotServicesGrid.appendChild(serviceCard);
+            });
+        }
+        
+        // 创建首页服务卡片
+        function createServiceCard(service, deviceType) {
+            const card = document.createElement('div');
+            card.className = 'service-card fade-in';
+            
+            // 根据服务类型决定是否显示价格
+            let priceHtml = '';
+            if (service.showPrice) {
+                priceHtml = `<div class="service-price">${service.price}</div>`;
             }
             
-            // 设置隐藏分影响信息
-            if (hiddenScore > 0) {
-                hiddenScoreEffect.textContent = `隐藏分影响：红色概率提升了${hiddenScore}%`;
-            } else if (hiddenScore < 0) {
-                hiddenScoreEffect.textContent = `隐藏分影响：红色概率降低了${Math.abs(hiddenScore)}%`;
-            }
+            card.innerHTML = `
+                <div class="service-icon">
+                    <i class="${service.icon}"></i>
+                </div>
+                <div class="service-name">${service.name}</div>
+                <div class="service-desc">${service.desc}</div>
+                ${priceHtml}
+            `;
             
-            // 添加到历史记录
-            history.unshift({
-                count: count,
-                numbers: numbers,
-                sum: currentSum,
-                mode: modeCost
+            // 添加点击事件
+            card.addEventListener('click', function() {
+                switchPage(deviceType === 'pc' ? 'pc-services-page' : 'mobile-services-page');
             });
             
-            // 显示结果弹窗
-            resultModal.style.display = 'block';
+            return card;
         }
         
-        // 更新隐藏分
-        function updateHiddenScore(modeCost, hasRed, currentSum) {
-            // 每次生成加5分
-            hiddenScore += 5;
+        // 渲染PC端服务列表
+        function renderPcServices(filter) {
+            // 清空当前内容
+            pcServiceGrid.innerHTML = '';
             
-            // 如果出红色，减50分
-            if (hasRed) {
-                hiddenScore -= 50;
+            // 筛选服务
+            let filteredServices = services.pc.all;
+            if (filter !== 'all') {
+                filteredServices = services.pc.all.filter(service => service.category === filter);
             }
             
-            // 如果总计分数每多500就减50分
-            const currentTotal = totalSum + currentSum - modeCost;
-            const deductionCount = Math.floor(currentTotal / 500) - Math.floor(lastDeductionPoint / 500);
-            
-            if (deductionCount > 0) {
-                hiddenScore -= deductionCount * 50;
-                lastDeductionPoint = currentTotal;
-            }
-            
-            // 更新显示
-            updateHiddenScoreDisplay();
+            // 渲染服务卡片
+            filteredServices.forEach(service => {
+                const serviceCard = createServiceDetailCard(service);
+                pcServiceGrid.appendChild(serviceCard);
+            });
         }
         
-        function getRandomCount() {
-            // 95%概率生成2-4个数字，5%概率生成其他数量
-            const isCommon = Math.random() < 0.95;
+        // 渲染手机端服务列表
+        function renderMobileServices(filter) {
+            // 清空当前内容
+            mobileServiceGrid.innerHTML = '';
             
-            if (isCommon) {
-                // 2到4之间的随机数
-                return Math.floor(Math.random() * 3) + 2;
-            } else {
-                // 1,5,6
-                const uncommonCounts = [1, 5, 6];
-                return uncommonCounts[Math.floor(Math.random() * uncommonCounts.length)];
+            // 筛选服务
+            let filteredServices = services.mobile.all;
+            if (filter !== 'all') {
+                filteredServices = services.mobile.all.filter(service => service.category === filter);
             }
+            
+            // 渲染服务卡片
+            filteredServices.forEach(service => {
+                const serviceCard = createServiceDetailCard(service);
+                mobileServiceGrid.appendChild(serviceCard);
+            });
         }
         
-        function getRandomNumberWithColor(modeCost) {
-            // 根据概率确定颜色
-            const color = getRandomColor(modeCost);
+        // 创建服务详情卡片
+        function createServiceDetailCard(service) {
+            const card = document.createElement('div');
+            card.className = 'service-card fade-in';
+            card.innerHTML = `
+                <div class="service-icon">
+                    <i class="${service.icon}"></i>
+                </div>
+                <div class="service-name">${service.name}</div>
+                <div class="service-desc">${service.desc}</div>
+                <div class="service-price">${service.price}</div>
+            `;
             
-            // 根据颜色生成对应范围的数字（数字越大概率越小）
-            let number;
-            switch(color) {
-                case 'green':
-                    number = getWeightedRandomNumber(1, 10);
+            // 添加点击事件
+            card.addEventListener('click', function() {
+                alert(`您选择了: ${service.name}\n价格: ${service.price}`);
+            });
+            
+            return card;
+        }
+        
+        // 渲染公告列表
+        function renderAnnouncements() {
+            announcementList.innerHTML = '';
+            
+            // 如果没有公告，显示空状态
+            if (announcements.length === 0) {
+                const emptyAnnouncement = document.createElement('div');
+                emptyAnnouncement.className = 'empty-announcement fade-in';
+                emptyAnnouncement.innerHTML = `
+                    <i class="fas fa-bullhorn"></i>
+                    <h3>暂无公告</h3>
+                    <p>当前没有公告，有新公告时会在此处显示</p>
+                `;
+                announcementList.appendChild(emptyAnnouncement);
+                return;
+            }
+            
+            // 如果有公告，渲染公告列表
+            announcements.forEach(announcement => {
+                const announcementCard = document.createElement('div');
+                announcementCard.className = 'announcement-card fade-in';
+                announcementCard.innerHTML = `
+                    <div class="announcement-title">
+                        ${announcement.title}
+                        <span class="announcement-date">${announcement.date}</span>
+                    </div>
+                    <div class="announcement-content">${announcement.content}</div>
+                `;
+                announcementList.appendChild(announcementCard);
+            });
+        }
+        
+        // 切换页面
+        function switchPage(pageId) {
+            // 更新当前页面
+            currentPage = pageId;
+            
+            // 切换页面显示
+            pages.forEach(page => {
+                page.classList.remove('active');
+                if (page.id === pageId) {
+                    page.classList.add('active');
+                }
+            });
+            
+            // 更新底部导航状态
+            navItems.forEach(nav => {
+                if (nav.getAttribute('data-page') === pageId) {
+                    nav.classList.add('active');
+                } else {
+                    nav.classList.remove('active');
+                }
+            });
+            
+            // 更新头部显示
+            updateHeader(pageId);
+            
+            // 更新返回按钮状态
+            updateBackButton();
+        }
+        
+        // 更新头部显示
+        function updateHeader(pageId) {
+            const logoIcon = headerLogo.querySelector('i');
+            const logoText = headerLogo.querySelector('h1');
+            
+            switch(pageId) {
+                case 'pc-services-page':
+                    logoIcon.className = 'fas fa-desktop';
+                    logoText.textContent = 'PC端服务';
                     break;
-                case 'blue':
-                    number = getWeightedRandomNumber(11, 20);
-                    break;
-                case 'purple':
-                    number = getWeightedRandomNumber(21, 30);
-                    break;
-                case 'golden':
-                    number = getWeightedRandomNumber(31, 40);
-                    break;
-                case 'red':
-                    number = getWeightedRandomNumber(41, 50);
-                    break;
-                case 'deep-red':
-                    number = 1000; // 深红色固定为1000
+                case 'mobile-services-page':
+                    logoIcon.className = 'fas fa-mobile-alt';
+                    logoText.textContent = '手机端服务';
                     break;
                 default:
-                    number = getWeightedRandomNumber(1, 10);
-            }
-            
-            return { number, color };
-        }
-        
-        // 生成加权随机数（数字越大概率越小）
-        function getWeightedRandomNumber(min, max) {
-            const range = max - min + 1;
-            const weights = [];
-            
-            // 创建权重数组，数字越大权重越小
-            for (let i = 0; i < range; i++) {
-                weights.push(range - i);
-            }
-            
-            // 计算总权重
-            const totalWeight = weights.reduce((a, b) => a + b, 0);
-            
-            // 生成随机数
-            let random = Math.random() * totalWeight;
-            for (let i = 0; i < range; i++) {
-                random -= weights[i];
-                if (random < 0) {
-                    return min + i;
-                }
-            }
-            
-            return min; // 默认返回最小值
-        }
-        
-        function getRandomColor(modeCost) {
-            const randomValue = Math.random() * 100;
-            
-            // 根据模式调整概率分布
-            if (modeCost === 0) {
-                // 普通模式 - 原始概率，但受隐藏分影响
-                return getAdjustedColor(randomValue, 50, 44.0112, 5, 0.618, 0.309, 0.0618);
-            } else if (modeCost === 50) {
-                // 消耗50积分模式 - 深红提升50%，紫色4倍，金色2倍
-                // 计算调整后的概率
-                const purpleProb = 5 * 4; // 4倍
-                const goldenProb = 0.618 * 2; // 2倍
-                const redProb = 0.309; // 保持不变
-                const deepRedProb = 0.0618 * 1.5; // 提升50%
-                
-                // 计算稀有颜色总概率
-                const rareTotal = purpleProb + goldenProb + redProb + deepRedProb;
-                
-                // 计算剩余概率分配给绿色和蓝色
-                const commonTotal = 100 - rareTotal;
-                const greenRatio = 50 / (50 + 44.0112);
-                const blueRatio = 44.0112 / (50 + 44.0112);
-                
-                const greenProb = commonTotal * greenRatio;
-                const blueProb = commonTotal * blueRatio;
-                
-                return getAdjustedColor(randomValue, greenProb, blueProb, purpleProb, goldenProb, redProb, deepRedProb);
-            } else if (modeCost === 100) {
-                // 消耗100积分模式 - 深红保持不变，紫色8倍，金色10倍
-                // 计算调整后的概率
-                const purpleProb = 5 * 8; // 8倍
-                const goldenProb = 0.618 * 10; // 10倍
-                const redProb = 0.309; // 保持不变
-                const deepRedProb = 0.0618; // 保持不变
-                
-                // 计算稀有颜色总概率
-                const rareTotal = purpleProb + goldenProb + redProb + deepRedProb;
-                
-                // 计算剩余概率分配给绿色和蓝色
-                const commonTotal = 100 - rareTotal;
-                const greenRatio = 50 / (50 + 44.0112);
-                const blueRatio = 44.0112 / (50 + 44.0112);
-                
-                const greenProb = commonTotal * greenRatio;
-                const blueProb = commonTotal * blueRatio;
-                
-                return getAdjustedColor(randomValue, greenProb, blueProb, purpleProb, goldenProb, redProb, deepRedProb);
+                    logoIcon.className = 'fas fa-gamepad';
+                    logoText.textContent = '离梦电竞';
+                    break;
             }
         }
         
-        // 根据隐藏分调整红色概率
-        function getAdjustedColor(randomValue, greenProb, blueProb, purpleProb, goldenProb, redProb, deepRedProb) {
-            // 应用隐藏分影响 - 调整红色概率
-            let adjustedRedProb = redProb * (1 + hiddenScore / 100);
-            
-            // 确保红色概率不为负
-            if (adjustedRedProb < 0) adjustedRedProb = 0;
-            
-            // 重新计算总概率
-            const totalProb = greenProb + blueProb + purpleProb + goldenProb + adjustedRedProb + deepRedProb;
-            
-            // 如果总概率超过100%，需要按比例缩减其他概率
-            if (totalProb > 100) {
-                const excess = totalProb - 100;
-                const otherColorsTotal = greenProb + blueProb + purpleProb + goldenProb + deepRedProb;
-                const scale = (otherColorsTotal - excess) / otherColorsTotal;
-                
-                greenProb *= scale;
-                blueProb *= scale;
-                purpleProb *= scale;
-                goldenProb *= scale;
-                deepRedProb *= scale;
-            }
-            
-            // 根据调整后的概率返回颜色
-            if (randomValue < greenProb) {
-                return 'green';
-            } else if (randomValue < greenProb + blueProb) {
-                return 'blue';
-            } else if (randomValue < greenProb + blueProb + purpleProb) {
-                return 'purple';
-            } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb) {
-                return 'golden';
-            } else if (randomValue < greenProb + blueProb + purpleProb + goldenProb + adjustedRedProb) {
-                return 'red';
+        // 更新返回按钮状态
+        function updateBackButton() {
+            if (currentPage === 'pc-services-page' || currentPage === 'mobile-services-page') {
+                backBtn.classList.add('visible');
             } else {
-                return 'deep-red';
+                backBtn.classList.remove('visible');
             }
         }
+        
+        // 绑定所有事件
+        function bindEvents() {
+            // 设备按钮点击事件
+            deviceBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 移除其他按钮的active类
+                    deviceBtns.forEach(b => b.classList.remove('active'));
+                    // 给当前按钮添加active类
+                    this.classList.add('active');
+                    
+                    // 根据按钮ID确定设备类型
+                    const deviceType = this.id === 'pc-btn' ? 'pc' : 'mobile';
+                    renderServices(deviceType);
+                });
+            });
+            
+            // "更多"按钮点击事件
+            moreRecommendBtn.addEventListener('click', function() {
+                // 根据当前设备类型跳转
+                const targetPage = currentDevice === 'pc' ? 'pc-services-page' : 'mobile-services-page';
+                switchPage(targetPage);
+            });
+            
+            moreHotBtn.addEventListener('click', function() {
+                // 根据当前设备类型跳转
+                const targetPage = currentDevice === 'pc' ? 'pc-services-page' : 'mobile-services-page';
+                switchPage(targetPage);
+            });
+            
+            // 底部导航点击事件
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const pageId = this.getAttribute('data-page');
+                    switchPage(pageId);
+                });
+            });
+            
+            // 返回按钮点击事件
+            backBtn.addEventListener('click', function() {
+                switchPage('home-page');
+            });
+            
+            // PC端服务筛选按钮点击事件
+            pcFilterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 移除其他按钮的active类
+                    pcFilterBtns.forEach(b => b.classList.remove('active'));
+                    // 给当前按钮添加active类
+                    this.classList.add('active');
+                    
+                    // 根据筛选条件渲染服务
+                    const filter = this.getAttribute('data-filter');
+                    renderPcServices(filter);
+                });
+            });
+            
+            // 手机端服务筛选按钮点击事件
+            mobileFilterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 移除其他按钮的active类
+                    mobileFilterBtns.forEach(b => b.classList.remove('active'));
+                    // 给当前按钮添加active类
+                    this.classList.add('active');
+                    
+                    // 根据筛选条件渲染服务
+                    const filter = this.getAttribute('data-filter');
+                    renderMobileServices(filter);
+                });
+            });
+            
+            // 菜单项点击事件
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const text = this.querySelector('.menu-item-left span').textContent;
+                    alert(`跳转到${text}页面`);
+                });
+            });
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
