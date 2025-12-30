@@ -107,22 +107,6 @@
             opacity: 0 !important;
             pointer-events: none;
         }
-
-        /* 提示文本 */
-        .click-hint {
-            position: absolute;
-            bottom: 20px;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1rem;
-            z-index: 5;
-            pointer-events: none;
-            animation: fadeInOut 2s infinite;
-        }
-
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
     </style>
 </head>
 <body>
@@ -138,9 +122,6 @@
     
     <!-- 烟花画布 -->
     <canvas id="fireworksCanvas"></canvas>
-    
-    <!-- 点击提示 -->
-    <div class="click-hint" id="clickHint">点击任意位置发射烟花，点击时钟开始/停止循环放烟花</div>
 
     <script>
         // 画布初始化
@@ -159,7 +140,6 @@
         const happyNewYearEl = document.getElementById('happyNewYear');
         const nianyueEl = document.getElementById('nianyue');
         const timeEl = document.getElementById('time');
-        const clickHint = document.getElementById('clickHint');
         
         // 设置目标时间为2026年1月1日00:00:00
         const targetTime = new Date(2026, 0, 1, 0, 0, 0).getTime();
@@ -208,8 +188,6 @@
                 // 如果距离目标时间10秒以内，开始倒计时显示
                 if (seconds <= 10 && seconds > 0) {
                     startCountdown(seconds);
-                    // 倒计时开始时隐藏点击提示
-                    clickHint.style.display = 'none';
                 }
             }
         }
@@ -249,9 +227,6 @@
             // 开始烟花效果
             launchFirework();
             setInterval(launchFirework, 500);
-            
-            // 隐藏点击提示
-            clickHint.style.display = 'none';
         }
 
         // 烟花粒子类
@@ -371,7 +346,6 @@
             enhancedFireworksActive = true;
             // 重置烟花数量为起始值（5个）
             currentFireworkCount = 5;
-            clickHint.textContent = "循环放烟花中...点击时钟停止";
             
             // 开始循环
             startFireworkPhase();
@@ -397,11 +371,11 @@
             }, fireworkDuration);
         }
 
-        // 开始暂停阶段（停顿1-3秒）
+        // 开始暂停阶段（停顿1-2秒）
         function startPausePhase() {
             if (!enhancedFireworksActive) return;
             
-            // 随机决定暂停时间（1-3秒）
+            // 随机决定暂停时间（1-2秒）
             const pauseDuration = getRandomDuration(1, 2) * 1000;
             
             // 设置定时器，在暂停时间结束后重新开始烟花阶段
@@ -427,9 +401,6 @@
             
             // 重置烟花数量
             currentFireworkCount = 5;
-            
-            // 恢复提示文本
-            clickHint.textContent = "点击任意位置发射烟花，点击时钟开始/停止循环放烟花";
         }
 
         // 动画循环
@@ -471,11 +442,6 @@
         clockContainer.addEventListener('click', (e) => {
             e.stopPropagation(); // 阻止事件冒泡
             startEnhancedFireworksCycle();
-            
-            // 隐藏点击提示（开始后过几秒再隐藏）
-            setTimeout(() => {
-                clickHint.style.display = 'none';
-            }, 3000);
         });
 
         // 点击其他区域触发单个烟花
@@ -485,9 +451,6 @@
             
             const fw = new Firework(e.clientX);
             fireworks.push(fw);
-            
-            // 隐藏点击提示
-            clickHint.style.display = 'none';
         });
         
         // 移动设备触摸事件
@@ -506,9 +469,6 @@
                 const fw = new Firework(touch.clientX);
                 fireworks.push(fw);
             }
-            
-            // 隐藏点击提示
-            clickHint.style.display = 'none';
         }, { passive: false });
     </script>
 </body>
